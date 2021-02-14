@@ -136,16 +136,15 @@ const Notepad = (props) => {
 
   const handleAdd = () => {
     let newNotes = {...notes}
+    let isValid = true
     if (title === '') {
       console.log('note title cannot be empty')
+      isValid=false
     }
     if (content === '') {
       console.log('note content cannot be empty')
+      isValid=false
     }
-    if (title === '' || content === '') {
-      return
-    }
-    let isValid = true
     notes && Object.keys(notes).forEach((name)=>{
       if (notes[name].content.title === title) {
         console.log('note title needs to be unique')
@@ -154,7 +153,6 @@ const Notepad = (props) => {
       }
     })
     if (!isValid) {
-      setTitle('')
       return
     }
     const note = {
@@ -205,16 +203,20 @@ const Notepad = (props) => {
   const handleSave = () => {
     let files = {}
     let isValid = true
+    const set = new Set()
     Object.keys(notes).forEach((name)=>{
       if (notes[name].content.title === '') {
         console.log('note title cannot be empty')
         isValid = false
-        return
+      } else if (set.has(notes[name].content.title)) {
+        console.log('note title needs to be unique')
+        isValid = false
+      } else {
+        set.add(notes[name].content.title)
       }
       if (notes[name].content.content === '') {
         console.log('note content cannot be empty')
         isValid = false
-        return
       }
       files = {
         ...files,
@@ -222,11 +224,11 @@ const Notepad = (props) => {
           content: JSON.stringify(notes[name].content)
         }
     }})
-    if (!isValid) {
-      return
-    }
     if (desc === '') {
       console.log('notepad title cannot be empty')
+      isValid = false
+    }
+    if (!isValid) {
       return
     }
     setDisabled(true)
