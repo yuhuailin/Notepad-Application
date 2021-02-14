@@ -91,12 +91,25 @@ const styles = {
   },
 }
 
+const createNotepad = async (url = '', data = {}) => {
+  const response = await fetch(url, {
+    method: 'POST', 
+    headers: {
+      'Content-Type': 'application/vnd.github.v3+json',
+      'Authorization': `Bearer ${process.env.REACT_APP_BEARER_TOKEN}`
+    },
+    body: JSON.stringify(data),
+  });
+  return response.json();
+}
+
 const Notepad = (props) => {
-  const { notepad, isNew } = props
+  const { notepad, isNew, setRefetch } = props
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [desc, setDesc] = useState(notepad.description??'')
   const [notes, setNotes] = useState(notepad.files)
+  const [disabled, setDisabled] = useState(false)
 
   const handleAdd = () => {
     let newNotes = {...notes}
@@ -133,6 +146,39 @@ const Notepad = (props) => {
     setContent('')
   }
 
+  const handleCreate = () => {
+    let files = {}
+    if (desc === '') {
+      console.log('notepad title cannot be empty')
+    }
+    if (!notes || Object.keys(notes).length < 1) {
+      console.log('add a note first')
+    }
+    if (desc === '' || !notes || Object.keys(notes).length < 1) {
+      return
+    }
+    Object.keys(notes).forEach((name)=>{
+      files = {
+        ...files,
+        [name]: {
+          content: JSON.stringify(notes[name].content)
+        }
+    }})
+    setDisabled(true)
+    createNotepad(process.env.REACT_APP_NOTEPAD_APPLICATION_HOST, { files, description: desc, public: true })
+    .then((data)=>{
+      setRefetch(true)
+      setNotes({})
+      setTitle('')
+      setContent('')
+      setDesc('')
+    })
+    .catch(e=>{console.log(e)})
+    .finally(()=>{
+      setDisabled(false)
+    })
+  }
+
   return (
     <div style={styles.container}>
       <div style={styles.inputLabel}>Notepad Title</div>
@@ -149,7 +195,8 @@ const Notepad = (props) => {
           <>
             <button
               style={styles.addButton}
-              onClick={()=>{}}
+              onClick={handleCreate}
+              disabled={disabled}
             >
               Create
             </button>
@@ -158,12 +205,14 @@ const Notepad = (props) => {
             <button
               style={styles.saveButton}
               onClick={()=>{}}
+              disabled={disabled}
             >
               Save
             </button>
             <button
               style={styles.deleteButton}
               onClick={()=>{}}
+              disabled={disabled}
             >
               Delete
             </button>
@@ -191,6 +240,7 @@ const Notepad = (props) => {
         <button
           style={styles.addButton}
           onClick={handleAdd}
+          disabled={disabled}
         >
           Add
         </button>
@@ -199,6 +249,7 @@ const Notepad = (props) => {
         <Note 
           key={`${noteName}_${index}`}
           note={notes[noteName]}
+          disabled={disabled}
         />
       ))}
     </div>

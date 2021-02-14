@@ -41,6 +41,8 @@ export const fetchNotepads = async (url = process.env.REACT_APP_NOTEPAD_APPLICAT
 
 const NotepadApp = () => {
   const [notepads, setNotepads] = useState([]);
+  const [refetch, setRefetch] = useState(false);
+
   useEffect(()=>{
     fetchNotepads()
     .then((data)=>{
@@ -56,6 +58,24 @@ const NotepadApp = () => {
     .catch(e=>{console.log(e)})
   }, [])
 
+  useEffect(()=>{
+    if (refetch) {
+      fetchNotepads()
+      .then((data)=>{
+        const filteredData = data.filter(notepad=>notepad.files)
+        filteredData.forEach(notepad => {
+          const files = notepad.files
+          Object.keys(files).forEach(name => {
+            files[name].content = JSON.parse(files[name].content)
+          })
+        })
+        setNotepads(filteredData);
+      })
+      .catch(e=>{console.log(e)})
+      .finally(()=>{setRefetch(false)})
+    }
+  }, [refetch])
+
   return (
     <div style={styles.AppContainer}>
       <div style={styles.MainTitle}>Notepad Application</div>
@@ -63,12 +83,14 @@ const NotepadApp = () => {
         <Notepad
           key={'new notepad'}
           notepad={{}}
+          setRefetch={setRefetch}
           isNew
         />
         {notepads.map((notepad, index)=>(
           <Notepad 
             key={`${notepad.id}_${index}`}
             notepad={notepad}
+            setRefetch={setRefetch}
           />
         ))}
       </div>

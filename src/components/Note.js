@@ -43,7 +43,7 @@ const styles = {
 }
 
 const Note = (props) => {
-  const { note } = props;
+  const { note, disabled } = props;
 
   return (
     <div style={styles.row}>
@@ -67,6 +67,7 @@ const Note = (props) => {
         <button
           style={styles.deleteButton}
           onClick={()=>{}}
+          disabled={disabled}
         >
           Delete
         </button>
