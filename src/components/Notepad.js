@@ -133,6 +133,7 @@ const Notepad = (props) => {
   const [desc, setDesc] = useState(notepad.description??'')
   const [notes, setNotes] = useState(notepad.files)
   const [disabled, setDisabled] = useState(false)
+  const [isDeleteOp, setIsDeleteOp] = useState(false)
 
   const handleAdd = () => {
     let newNotes = {...notes}
@@ -156,6 +157,7 @@ const Notepad = (props) => {
       return
     }
     const note = {
+      filename:`${title}.json`,
       content: {
         title,
         content
@@ -169,13 +171,32 @@ const Notepad = (props) => {
 
   const handleCreate = () => {
     let files = {}
+    let isValid = true
     if (desc === '') {
       console.log('notepad title cannot be empty')
+      isValid = false
     }
     if (!notes || Object.keys(notes).length < 1) {
       console.log('add a note first')
+      isValid = false
     }
-    if (desc === '' || !notes || Object.keys(notes).length < 1) {
+    const set = new Set()
+    notes && Object.keys(notes).forEach((name)=>{
+      if (notes[name].content.title === '') {
+        console.log('note title cannot be empty')
+        isValid = false
+      } else if (set.has(notes[name].content.title)) {
+        console.log('note title needs to be unique')
+        isValid = false
+      } else {
+        set.add(notes[name].content.title)
+      }
+      if (notes[name].content.content === '') {
+        console.log('note content cannot be empty')
+        isValid = false
+      }
+    })
+    if (!isValid) {
       return
     }
     Object.keys(notes).forEach((name)=>{
@@ -231,41 +252,35 @@ const Notepad = (props) => {
     if (!isValid) {
       return
     }
-    setDisabled(true)
-    saveNotepad(`${process.env.REACT_APP_NOTEPAD_APPLICATION_HOST}/${notepad.id}`, { files, description: desc })
-    .then((data)=>{
-      setRefetch(true)
-    })
-    .catch(e=>{console.log(e)})
-    .finally(()=>{
-      setDisabled(false)
-    })
+    // PATCH action cannot delete a gist's files
+    // if there is a file being deleted in a gist, need to recreate the gist
+    if (isDeleteOp) {
+      setDisabled(true)
+      deleteNotepad(`${process.env.REACT_APP_NOTEPAD_APPLICATION_HOST}/${notepad.id}`)
+      .then(()=> createNotepad(process.env.REACT_APP_NOTEPAD_APPLICATION_HOST, { files, description: desc, public: true }))
+      .then((data)=>{
+        setRefetch(true)
+      })
+      .catch(e=>{console.log(e)})
+      .finally(()=>{
+        setDisabled(false)
+      })
+    } else {
+      setDisabled(true)
+      saveNotepad(`${process.env.REACT_APP_NOTEPAD_APPLICATION_HOST}/${notepad.id}`, { files, description: desc })
+      .then((data)=>{
+        setRefetch(true)
+      })
+      .catch(e=>{console.log(e)})
+      .finally(()=>{
+        setDisabled(false)
+      })
+    }
   }
 
   const handleDelete = () => {
     setDisabled(true)
     deleteNotepad(`${process.env.REACT_APP_NOTEPAD_APPLICATION_HOST}/${notepad.id}`)
-    .then((data)=>{
-      setRefetch(true)
-    })
-    .catch(e=>{console.log(e)})
-    .finally(()=>{
-      setDisabled(false)
-    })
-  }
-
-  const handleDeleteNote = (notes) => {
-    let files = {}
-    Object.keys(notes).forEach((name)=>{
-      files = {
-        ...files,
-        [name]: {
-          content: JSON.stringify(notes[name].content)
-        }
-    }})
-    setDisabled(true)
-    deleteNotepad(`${process.env.REACT_APP_NOTEPAD_APPLICATION_HOST}/${notepad.id}`)
-    .then(()=> createNotepad(process.env.REACT_APP_NOTEPAD_APPLICATION_HOST, { files, description: desc, public: true }))
     .then((data)=>{
       setRefetch(true)
     })
@@ -348,7 +363,7 @@ const Notepad = (props) => {
           disabled={disabled}
           setNotes={setNotes}
           notes={notes}
-          handleDeleteNote={handleDeleteNote}
+          setIsDeleteOp={setIsDeleteOp}
         />
       ))}
     </div>
