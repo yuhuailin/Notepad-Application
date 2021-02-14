@@ -96,6 +96,42 @@ const Notepad = (props) => {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [desc, setDesc] = useState(notepad.description??'')
+  const [notes, setNotes] = useState(notepad.files)
+
+  const handleAdd = () => {
+    let newNotes = {...notes}
+    if (title === '') {
+      console.log('note title cannot be empty')
+    }
+    if (content === '') {
+      console.log('note content cannot be empty')
+    }
+    if (title === '' || content === '') {
+      return
+    }
+    let isValid = true
+    notes && Object.keys(notes).forEach((name)=>{
+      if (notes[name].content.title === title) {
+        console.log('note title needs to be unique')
+        isValid=false
+        return
+      }
+    })
+    if (!isValid) {
+      setTitle('')
+      return
+    }
+    const note = {
+      content: {
+        title,
+        content
+      }
+    }
+    newNotes = {...newNotes, [`${title}.json`]: note }
+    setNotes(newNotes)
+    setTitle('')
+    setContent('')
+  }
 
   return (
     <div style={styles.container}>
@@ -154,15 +190,15 @@ const Notepad = (props) => {
       <div>
         <button
           style={styles.addButton}
-          onClick={()=>{}}
+          onClick={handleAdd}
         >
           Add
         </button>
       </div>
-      {notepad.files && Object.keys(notepad.files).map((noteName, index)=>(
+      {notes && Object.keys(notes).map((noteName, index)=>(
         <Note 
           key={`${noteName}_${index}`}
-          note={notepad.files[noteName]}
+          note={notes[noteName]}
         />
       ))}
     </div>
