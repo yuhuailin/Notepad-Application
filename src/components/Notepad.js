@@ -252,6 +252,27 @@ const Notepad = (props) => {
     })
   }
 
+  const handleDeleteNote = (notes) => {
+    let files = {}
+    Object.keys(notes).forEach((name)=>{
+      files = {
+        ...files,
+        [name]: {
+          content: JSON.stringify(notes[name].content)
+        }
+    }})
+    setDisabled(true)
+    deleteNotepad(`${process.env.REACT_APP_NOTEPAD_APPLICATION_HOST}/${notepad.id}`)
+    .then(()=> createNotepad(process.env.REACT_APP_NOTEPAD_APPLICATION_HOST, { files, description: desc, public: true }))
+    .then((data)=>{
+      setRefetch(true)
+    })
+    .catch(e=>{console.log(e)})
+    .finally(()=>{
+      setDisabled(false)
+    })
+  }
+
   return (
     <div style={styles.container}>
       <div style={styles.inputLabel}>Notepad Title</div>
@@ -325,6 +346,7 @@ const Notepad = (props) => {
           disabled={disabled}
           setNotes={setNotes}
           notes={notes}
+          handleDeleteNote={handleDeleteNote}
         />
       ))}
     </div>

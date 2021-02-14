@@ -43,7 +43,13 @@ const styles = {
 }
 
 const Note = (props) => {
-  const { note, disabled, notes, setNotes } = props;
+  const { note, disabled, notes, setNotes, handleDeleteNote } = props;
+
+  const handleDelete = () => {
+    const newNotes = {...notes}
+    delete newNotes[note.filename]
+    handleDeleteNote(newNotes)
+  }
 
   const handleChangeTitle = (e) => {
     const newNotes = {...notes}
@@ -78,7 +84,7 @@ const Note = (props) => {
       <div>
         <button
           style={styles.deleteButton}
-          onClick={()=>{}}
+          onClick={handleDelete}
           disabled={disabled}
         >
           Delete
