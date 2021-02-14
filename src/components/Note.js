@@ -44,7 +44,6 @@ const styles = {
 
 const Note = (props) => {
   const { note } = props;
-  const parsedNote = JSON.parse(note.content);
 
   return (
     <div style={styles.row}>
@@ -54,14 +53,14 @@ const Note = (props) => {
           placeholder="Enter note title..."
           maxLength="255"
           onChange={()=>{}}
-          value={parsedNote.title}
+          value={note.content.title}
         />
         <textarea
           style={styles.inputArea}
           placeholder="Enter note..."
           maxLength="1000"
           onChange={()=>{}}
-          value={parsedNote.content}
+          value={note.content.content}
         />
       </div>
       <div>

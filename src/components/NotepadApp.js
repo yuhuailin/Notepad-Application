@@ -1,17 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState }  from 'react';
 import Notepad from './Notepad';
-
-const mockData = [
-  {
-    id: '1',
-    description: 'test notepad',
-    files: {
-      'test.json': {
-        content: "{\"title\": \"title1\", \"content\": \"content1\"}"
-      }
-    }
-  },
-]
 
 const styles = {
   AppContainer: {
@@ -29,7 +17,45 @@ const styles = {
   }
 }
 
+export const fetchNotepads = async (url = process.env.REACT_APP_NOTEPAD_APPLICATION_HOST, data = {}) => {
+  const response = await fetch(url, {
+    method: 'GET', 
+    headers: {
+      'Content-Type': 'application/vnd.github.v3+json',
+      'Authorization': `Bearer ${process.env.REACT_APP_BEARER_TOKEN}`
+    },
+  });
+  const notepads = await response.json();
+  const notepadsReponses = await Promise.all(notepads.map((notepad)=>fetch(`${process.env.REACT_APP_NOTEPAD_APPLICATION_HOST}/${notepad.id}`, {
+    method: 'GET', 
+    headers: {
+      'Content-Type': 'application/vnd.github.v3+json',
+      'Authorization': `Bearer ${process.env.REACT_APP_BEARER_TOKEN}`
+    },
+  })))
+  const notepadsWithNotes = await Promise.all(notepadsReponses.map((response)=>
+    response.json()
+  ))
+  return notepadsWithNotes;
+}
+
 const NotepadApp = () => {
+  const [notepads, setNotepads] = useState([]);
+  useEffect(()=>{
+    fetchNotepads()
+    .then((data)=>{
+      const filteredData = data.filter(notepad=>notepad.files)
+      filteredData.forEach(notepad => {
+        const files = notepad.files
+        Object.keys(files).forEach(name => {
+          files[name].content = JSON.parse(files[name].content)
+        })
+      })
+      setNotepads(filteredData);
+    })
+    .catch(e=>{console.log(e)})
+  }, [])
+
   return (
     <div style={styles.AppContainer}>
       <div style={styles.MainTitle}>Notepad Application</div>
@@ -39,7 +65,7 @@ const NotepadApp = () => {
           notepad={{}}
           isNew
         />
-        {mockData.map((notepad, index)=>(
+        {notepads.map((notepad, index)=>(
           <Notepad 
             key={`${notepad.id}_${index}`}
             notepad={notepad}
