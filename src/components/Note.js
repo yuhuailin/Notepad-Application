@@ -43,7 +43,19 @@ const styles = {
 }
 
 const Note = (props) => {
-  const { note, disabled } = props;
+  const { note, disabled, notes, setNotes } = props;
+
+  const handleChangeTitle = (e) => {
+    const newNotes = {...notes}
+    note.content.title = e.target.value
+    setNotes(newNotes)
+  }
+
+  const handleChangeContent = (e) => {
+    const newNotes = {...notes}
+    note.content.content = e.target.value
+    setNotes(newNotes)
+  }
 
   return (
     <div style={styles.row}>
@@ -52,14 +64,14 @@ const Note = (props) => {
           style={styles.input}
           placeholder="Enter note title..."
           maxLength="255"
-          onChange={()=>{}}
+          onChange={handleChangeTitle}
           value={note.content.title}
         />
         <textarea
           style={styles.inputArea}
           placeholder="Enter note..."
           maxLength="1000"
-          onChange={()=>{}}
+          onChange={handleChangeContent}
           value={note.content.content}
         />
       </div>

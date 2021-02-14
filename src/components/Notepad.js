@@ -91,6 +91,18 @@ const styles = {
   },
 }
 
+const saveNotepad = async (url = '', data = {}) => {
+  const response = await fetch(url, {
+    method: 'PATCH', 
+    headers: {
+      'Content-Type': 'application/vnd.github.v3+json',
+      'Authorization': `Bearer ${process.env.REACT_APP_BEARER_TOKEN}`
+    },
+    body: JSON.stringify(data),
+  });
+  return response.json();
+}
+
 const createNotepad = async (url = '', data = {}) => {
   const response = await fetch(url, {
     method: 'POST', 
@@ -179,6 +191,44 @@ const Notepad = (props) => {
     })
   }
 
+  const handleSave = () => {
+    let files = {}
+    let isValid = true
+    Object.keys(notes).forEach((name)=>{
+      if (notes[name].content.title === '') {
+        console.log('note title cannot be empty')
+        isValid = false
+        return
+      }
+      if (notes[name].content.content === '') {
+        console.log('note content cannot be empty')
+        isValid = false
+        return
+      }
+      files = {
+        ...files,
+        [name]: {
+          content: JSON.stringify(notes[name].content)
+        }
+    }})
+    if (!isValid) {
+      return
+    }
+    if (desc === '') {
+      console.log('notepad title cannot be empty')
+      return
+    }
+    setDisabled(true)
+    saveNotepad(`${process.env.REACT_APP_NOTEPAD_APPLICATION_HOST}/${notepad.id}`, { files, description: desc })
+    .then((data)=>{
+      setRefetch(true)
+    })
+    .catch(e=>{console.log(e)})
+    .finally(()=>{
+      setDisabled(false)
+    })
+  }
+
   return (
     <div style={styles.container}>
       <div style={styles.inputLabel}>Notepad Title</div>
@@ -204,7 +254,7 @@ const Notepad = (props) => {
           <>
             <button
               style={styles.saveButton}
-              onClick={()=>{}}
+              onClick={handleSave}
               disabled={disabled}
             >
               Save
@@ -250,6 +300,8 @@ const Notepad = (props) => {
           key={`${noteName}_${index}`}
           note={notes[noteName]}
           disabled={disabled}
+          setNotes={setNotes}
+          notes={notes}
         />
       ))}
     </div>
