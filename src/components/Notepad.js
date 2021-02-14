@@ -115,6 +115,17 @@ const createNotepad = async (url = '', data = {}) => {
   return response.json();
 }
 
+const deleteNotepad = async (url = '', data = {}) => {
+  const response = await fetch(url, {
+    method: 'DELETE', 
+    headers: {
+      'Content-Type': 'application/vnd.github.v3+json',
+      'Authorization': `Bearer ${process.env.REACT_APP_BEARER_TOKEN}`
+    },
+  });
+  return response;
+}
+
 const Notepad = (props) => {
   const { notepad, isNew, setRefetch } = props
   const [title, setTitle] = useState('')
@@ -229,6 +240,18 @@ const Notepad = (props) => {
     })
   }
 
+  const handleDelete = () => {
+    setDisabled(true)
+    deleteNotepad(`${process.env.REACT_APP_NOTEPAD_APPLICATION_HOST}/${notepad.id}`)
+    .then((data)=>{
+      setRefetch(true)
+    })
+    .catch(e=>{console.log(e)})
+    .finally(()=>{
+      setDisabled(false)
+    })
+  }
+
   return (
     <div style={styles.container}>
       <div style={styles.inputLabel}>Notepad Title</div>
@@ -261,7 +284,7 @@ const Notepad = (props) => {
             </button>
             <button
               style={styles.deleteButton}
-              onClick={()=>{}}
+              onClick={handleDelete}
               disabled={disabled}
             >
               Delete
