@@ -43,17 +43,22 @@ const styles = {
 }
 
 const Note = (props) => {
-  const { note, disabled, notes, setNotes, setIsDeleteOp } = props;
+  const { note, disabled, notes, setNotes } = props;
 
   const handleDelete = () => {
     const newNotes = {...notes}
-    delete newNotes[note.filename]
-    if (Object.keys(newNotes).length < 1) {
+    let count = 0;
+    Object.keys(newNotes).forEach((name)=>{
+      if (!newNotes[name].content.isDeleted) {
+        count++;
+      }
+    })
+    if (count < 2) {
       console.log('at least one note is required')
       return
     }
+    newNotes[note.filename].content = {...newNotes[note.filename].content, isDeleted: true }
     setNotes(newNotes)
-    setIsDeleteOp(true)
   }
 
   const handleChangeTitle = (e) => {

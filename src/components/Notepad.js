@@ -133,7 +133,6 @@ const Notepad = (props) => {
   const [desc, setDesc] = useState(notepad.description??'')
   const [notes, setNotes] = useState(notepad.files)
   const [disabled, setDisabled] = useState(false)
-  const [isDeleteOp, setIsDeleteOp] = useState(false)
 
   const handleAdd = () => {
     let newNotes = {...notes}
@@ -147,7 +146,7 @@ const Notepad = (props) => {
       isValid=false
     }
     notes && Object.keys(notes).forEach((name)=>{
-      if (notes[name].content.title === title) {
+      if (notes[name].content.title === title && !notes[name].content.isDeleted) {
         console.log('note title needs to be unique')
         isValid=false
         return
@@ -252,30 +251,15 @@ const Notepad = (props) => {
     if (!isValid) {
       return
     }
-    // PATCH action cannot delete a gist's files
-    // if there is a file being deleted in a gist, need to recreate the gist
-    if (isDeleteOp) {
-      setDisabled(true)
-      deleteNotepad(`${process.env.REACT_APP_NOTEPAD_APPLICATION_HOST}/${notepad.id}`)
-      .then(()=> createNotepad(process.env.REACT_APP_NOTEPAD_APPLICATION_HOST, { files, description: desc, public: true }))
-      .then((data)=>{
-        setRefetch(true)
-      })
-      .catch(e=>{console.log(e)})
-      .finally(()=>{
-        setDisabled(false)
-      })
-    } else {
-      setDisabled(true)
-      saveNotepad(`${process.env.REACT_APP_NOTEPAD_APPLICATION_HOST}/${notepad.id}`, { files, description: desc })
-      .then((data)=>{
-        setRefetch(true)
-      })
-      .catch(e=>{console.log(e)})
-      .finally(()=>{
-        setDisabled(false)
-      })
-    }
+    setDisabled(true)
+    saveNotepad(`${process.env.REACT_APP_NOTEPAD_APPLICATION_HOST}/${notepad.id}`, { files, description: desc })
+    .then((data)=>{
+      setRefetch(true)
+    })
+    .catch(e=>{console.log(e)})
+    .finally(()=>{
+      setDisabled(false)
+    })
   }
 
   const handleDelete = () => {
@@ -356,14 +340,15 @@ const Notepad = (props) => {
           Add
         </button>
       </div>
-      {notes && Object.keys(notes).map((noteName, index)=>(
+      {notes && Object.keys(notes)
+      .filter((fileName)=>!notes[fileName].content.isDeleted)
+      .map((noteName, index)=>(
         <Note 
           key={`${noteName}_${index}`}
           note={notes[noteName]}
           disabled={disabled}
           setNotes={setNotes}
           notes={notes}
-          setIsDeleteOp={setIsDeleteOp}
         />
       ))}
     </div>
