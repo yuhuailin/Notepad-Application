@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Note from './Note';
+import { saveNotepad, createNotepad, deleteNotepad } from '../services/index';
 
 const styles = {
   container: {
@@ -89,41 +90,6 @@ const styles = {
     "width": "80px",
     "marginLeft": "12px",
   },
-}
-
-const saveNotepad = async (url = '', data = {}) => {
-  const response = await fetch(url, {
-    method: 'PATCH', 
-    headers: {
-      'Content-Type': 'application/vnd.github.v3+json',
-      'Authorization': `Bearer ${process.env.REACT_APP_BEARER_TOKEN}`
-    },
-    body: JSON.stringify(data),
-  });
-  return response.json();
-}
-
-const createNotepad = async (url = '', data = {}) => {
-  const response = await fetch(url, {
-    method: 'POST', 
-    headers: {
-      'Content-Type': 'application/vnd.github.v3+json',
-      'Authorization': `Bearer ${process.env.REACT_APP_BEARER_TOKEN}`
-    },
-    body: JSON.stringify(data),
-  });
-  return response.json();
-}
-
-const deleteNotepad = async (url = '', data = {}) => {
-  const response = await fetch(url, {
-    method: 'DELETE', 
-    headers: {
-      'Content-Type': 'application/vnd.github.v3+json',
-      'Authorization': `Bearer ${process.env.REACT_APP_BEARER_TOKEN}`
-    },
-  });
-  return response;
 }
 
 const Notepad = (props) => {
