@@ -155,14 +155,15 @@ const Notepad = (props) => {
     if (!isValid) {
       return
     }
+    const noteFileName = `${Object.keys(newNotes).length}.json`
     const note = {
-      filename:`${title}.json`,
+      filename: noteFileName,
       content: {
         title,
         content
       }
     }
-    newNotes = {...newNotes, [`${title}.json`]: note }
+    newNotes = {...newNotes, [noteFileName]: note }
     setNotes(newNotes)
     setTitle('')
     setContent('')
@@ -181,6 +182,10 @@ const Notepad = (props) => {
     }
     const set = new Set()
     notes && Object.keys(notes).forEach((name)=>{
+      if (notes[name].content.isDeleted) {
+        delete notes[name]
+        return
+      }
       if (notes[name].content.title === '') {
         console.log('note title cannot be empty')
         isValid = false
@@ -225,6 +230,9 @@ const Notepad = (props) => {
     let isValid = true
     const set = new Set()
     Object.keys(notes).forEach((name)=>{
+      if (notes[name].content.isDeleted) {
+        return
+      }
       if (notes[name].content.title === '') {
         console.log('note title cannot be empty')
         isValid = false
